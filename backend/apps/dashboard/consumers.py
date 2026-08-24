@@ -17,7 +17,7 @@ class DashboardConsumer(
         )
 
         await self.accept()
-    print("========= ACCEPT DONE ==========")
+        print("========= ACCEPT DONE ==========")
 
     async def disconnect(self, close_code):
         print(
