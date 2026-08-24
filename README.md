@@ -2,58 +2,31 @@
 
 A full-stack real-time IoT sensor monitoring dashboard built with Django, Django REST Framework, Django Channels, Redis, PostgreSQL, React, TypeScript, and Docker.
 
-The system collects sensor readings such as temperature, humidity, and battery level, stores them in PostgreSQL, exposes them through REST APIs, and streams live sensor data to the frontend using WebSockets.
+The system manages multiple IoT devices, stores sensor readings in PostgreSQL, provides REST APIs, and streams real-time sensor data to the frontend using WebSockets.
 
 ---
 
 ## Features
 
-### Device Management
-
-- Create devices
-- View all devices
-- Device status management
-- Device location
-- Device serial number
-- Online / Offline status
-
-### Sensor Monitoring
-
-Each sensor reading contains:
-
-- Temperature
-- Humidity
-- Battery level
-- Device
-- Timestamp
-
-### Real-Time Dashboard
-
-- Real-time sensor updates using WebSockets
-- Live temperature
-- Live humidity
-- Live battery level
-- Multiple devices supported
+- Device management
+- Add new sensors/devices
+- Online / Offline device status
+- Device location and serial number
+- Historical sensor readings
+- Real-time sensor data
+- Temperature monitoring
+- Humidity monitoring
+- Battery monitoring
+- Real-time WebSocket updates
 - Device-specific live data
-
-### Historical Data
-
-- Previous sensor readings stored in PostgreSQL
-- Latest reading shown when live data is unavailable
-- Historical sensor reading table
-- Temperature chart
-- Humidity chart
-- Battery chart
-
-### Dashboard Behavior
-
-The dashboard follows this priority:
-
-1. Live WebSocket data
-2. Latest database reading
-3. No data
-
-So if the WebSocket temporarily disconnects, the UI continues showing the last available sensor reading instead of becoming empty.
+- Live sensor charts
+- Last known reading fallback
+- REST API
+- PostgreSQL database
+- Redis Channel Layer
+- Nginx reverse proxy
+- Dockerized backend infrastructure
+- React + TypeScript frontend
 
 ---
 
@@ -69,8 +42,6 @@ So if the WebSocket temporarily disconnects, the UI continues showing the last a
 - Redis
 - PostgreSQL
 - ASGI
-- Docker
-- Nginx
 
 ## Frontend
 
@@ -83,10 +54,11 @@ So if the WebSocket temporarily disconnects, the UI continues showing the last a
 
 ## Infrastructure
 
+- Docker
 - Docker Compose
-- Nginx reverse proxy
-- Redis channel layer
-- PostgreSQL database
+- Nginx
+- Redis
+- PostgreSQL
 
 ---
 
@@ -114,7 +86,6 @@ So if the WebSocket temporarily disconnects, the UI continues showing the last a
                          │ DRF + Channels      │
                          └──────┬───────┬──────┘
                                 │       │
-                       HTTP API  │       │ WebSocket
                                 │       │
                                 ▼       ▼
                          ┌──────────┐  ┌──────────┐
@@ -125,15 +96,82 @@ So if the WebSocket temporarily disconnects, the UI continues showing the last a
                          └──────────┘  └──────────┘
 
 
-# Quick Start
+live-sensor-dashboard/
+│
+├── backend/
+│   │
+│   ├── apps/
+│   │   ├── devices/
+│   │   │   ├── models.py
+│   │   │   ├── serializers.py
+│   │   │   ├── views.py
+│   │   │   ├── urls.py
+│   │   │   └── ...
+│   │   │
+│   │   └── dashboard/
+│   │       ├── models.py
+│   │       ├── consumers.py
+│   │       ├── signals.py
+│   │       ├── routing.py
+│   │       └── ...
+│   │
+│   ├── config/
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   ├── asgi.py
+│   │   └── ...
+│   │
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── requirements.txt
+│   └── manage.py
+│
+└── frontend/
+    │
+    ├── src/
+    │   ├── api/
+    │   │   ├── devices.ts
+    │   │   └── readings.ts
+    │   │
+    │   ├── pages/
+    │   │   ├── Home.tsx
+    │   │   ├── AddDevice.tsx
+    │   │   └── DeviceDetails.tsx
+    │   │
+    │   ├── services/
+    │   │   └── websocket.ts
+    │   │
+    │   ├── types/
+    │   │   ├── device.ts
+    │   │   ├── sensor.ts
+    │   │   └── websocket.ts
+    │   │
+    │   ├── App.tsx
+    │   ├── App.css
+    │   └── main.tsx
+    │
+    ├── package.json
+    ├── vite.config.ts
+    └── ...
 
-Follow the steps below to run the project locally.
 
----
-
-## 1. Clone the Repository
-
-First, clone the GitHub repository:
-
-```bash
 git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+
+cd YOUR_REPOSITORY/backend
+
+cp .env.example .env
+
+docker compose up --build -d
+
+docker compose exec backend python manage.py migrate
+
+
+git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+
+cd YOUR_REPOSITORY/backend
+
+cp .env.example .env
+
+docker compose up --build -d
+
+docker compose exec backend python manage.py migrate
