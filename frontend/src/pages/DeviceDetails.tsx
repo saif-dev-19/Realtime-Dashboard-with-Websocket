@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
 import { getReadings } from "../api/readings";
 import type { SensorReading } from "../types/sensor";
 
@@ -16,9 +26,12 @@ function DeviceDetails() {
       try {
         const data = await getReadings();
 
-        const deviceReadings = data.filter(
-          (reading) => String(reading.device) === id
-        );
+        const deviceReadings = data
+          .filter(
+            (reading) =>
+              String(reading.device) === id
+          )
+          .reverse();
 
         setReadings(deviceReadings);
       } catch (error) {
@@ -27,7 +40,9 @@ function DeviceDetails() {
           error
         );
 
-        setError("Failed to load sensor readings");
+        setError(
+          "Failed to load sensor readings"
+        );
       } finally {
         setLoading(false);
       }
@@ -52,12 +67,32 @@ function DeviceDetails() {
     );
   }
 
+  const chartData = readings.map(
+    (reading) => ({
+      time: new Date(
+        reading.created_at
+      ).toLocaleTimeString(),
+
+      temperature: reading.temperature,
+      humidity: reading.humidity,
+      battery: reading.battery,
+    })
+  );
+
+  const latest =
+    readings[readings.length - 1];
+
   return (
     <main className="dashboard">
+
+      {/* =========================
+          Header
+      ========================== */}
 
       <header className="dashboard-header">
 
         <div>
+
           <Link to="/">
             ← Back to Dashboard
           </Link>
@@ -67,105 +102,310 @@ function DeviceDetails() {
           </h1>
 
           <p>
-            Sensor reading history
+            Sensor monitoring and history
           </p>
+
         </div>
 
       </header>
 
 
-      <section className="devices-section">
+      {/* =========================
+          Current Reading
+      ========================== */}
+
+      {latest && (
+        <section className="current-reading">
+
+          <div className="current-reading-card">
+
+            <span>
+              Temperature
+            </span>
+
+            <strong>
+              {latest.temperature}°C
+            </strong>
+
+          </div>
+
+
+          <div className="current-reading-card">
+
+            <span>
+              Humidity
+            </span>
+
+            <strong>
+              {latest.humidity}%
+            </strong>
+
+          </div>
+
+
+          <div className="current-reading-card">
+
+            <span>
+              Battery
+            </span>
+
+            <strong>
+              {latest.battery}%
+            </strong>
+
+          </div>
+
+        </section>
+      )}
+
+
+      {/* =========================
+          Charts
+      ========================== */}
+
+      {readings.length > 0 ? (
+
+        <section className="charts-section">
+
+          {/* Temperature */}
+
+          <div className="chart-card">
+
+            <div className="chart-header">
+
+              <h2>
+                Temperature
+              </h2>
+
+              <span>
+                °C
+              </span>
+
+            </div>
+
+            <ResponsiveContainer
+              width="100%"
+              height={300}
+            >
+              <LineChart
+                data={chartData}
+              >
+
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                />
+
+                <XAxis
+                  dataKey="time"
+                />
+
+                <YAxis />
+
+                <Tooltip />
+
+                <Line
+                  type="monotone"
+                  dataKey="temperature"
+                  stroke="#6366f1"
+                  strokeWidth={3}
+                  dot={false}
+                />
+
+              </LineChart>
+            </ResponsiveContainer>
+
+          </div>
+
+
+          {/* Humidity */}
+
+          <div className="chart-card">
+
+            <div className="chart-header">
+
+              <h2>
+                Humidity
+              </h2>
+
+              <span>
+                %
+              </span>
+
+            </div>
+
+            <ResponsiveContainer
+              width="100%"
+              height={300}
+            >
+              <LineChart
+                data={chartData}
+              >
+
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                />
+
+                <XAxis
+                  dataKey="time"
+                />
+
+                <YAxis />
+
+                <Tooltip />
+
+                <Line
+                  type="monotone"
+                  dataKey="humidity"
+                  stroke="#0ea5e9"
+                  strokeWidth={3}
+                  dot={false}
+                />
+
+              </LineChart>
+            </ResponsiveContainer>
+
+          </div>
+
+
+          {/* Battery */}
+
+          <div className="chart-card">
+
+            <div className="chart-header">
+
+              <h2>
+                Battery
+              </h2>
+
+              <span>
+                %
+              </span>
+
+            </div>
+
+            <ResponsiveContainer
+              width="100%"
+              height={300}
+            >
+              <LineChart
+                data={chartData}
+              >
+
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                />
+
+                <XAxis
+                  dataKey="time"
+                />
+
+                <YAxis
+                  domain={[0, 100]}
+                />
+
+                <Tooltip />
+
+                <Line
+                  type="monotone"
+                  dataKey="battery"
+                  stroke="#22c55e"
+                  strokeWidth={3}
+                  dot={false}
+                />
+
+              </LineChart>
+            </ResponsiveContainer>
+
+          </div>
+
+        </section>
+
+      ) : (
+
+        <div className="reading-card">
+
+          <p>
+            No sensor readings found.
+          </p>
+
+        </div>
+
+      )}
+
+
+      {/* =========================
+          Reading History
+      ========================== */}
+
+      <section className="history-section">
 
         <div className="section-header">
+
           <h2>
-            Sensor Readings
+            Reading History
           </h2>
 
           <span>
             {readings.length} readings
           </span>
+
         </div>
 
 
-        {readings.length === 0 ? (
+        {readings.length > 0 ? (
 
-          <div className="reading-card">
-            <p>
-              No sensor readings found.
-            </p>
-          </div>
+          <div className="history-table-wrapper">
 
-        ) : (
+            <table className="history-table">
 
-          <div className="readings-grid">
+              <thead>
 
-            {readings.map((reading) => (
+                <tr>
+                  <th>Time</th>
+                  <th>Temperature</th>
+                  <th>Humidity</th>
+                  <th>Battery</th>
+                </tr>
 
-              <article
-                key={reading.id}
-                className="reading-card"
-              >
+              </thead>
 
-                <div className="reading-card-header">
+              <tbody>
 
-                  <div>
-                    <h3>
-                      Device {reading.device}
-                    </h3>
+                {[...readings]
+                  .reverse()
+                  .map((reading) => (
 
-                    <span>
-                      {new Date(
-                        reading.created_at
-                      ).toLocaleString()}
-                    </span>
-                  </div>
+                    <tr key={reading.id}>
 
-                </div>
+                      <td>
+                        {new Date(
+                          reading.created_at
+                        ).toLocaleString()}
+                      </td>
 
+                      <td>
+                        {reading.temperature}°C
+                      </td>
 
-                <div className="reading-values">
+                      <td>
+                        {reading.humidity}%
+                      </td>
 
-                  <div>
-                    <span>
-                      Temperature
-                    </span>
+                      <td>
+                        {reading.battery}%
+                      </td>
 
-                    <strong>
-                      {reading.temperature}°C
-                    </strong>
-                  </div>
+                    </tr>
 
+                  ))}
 
-                  <div>
-                    <span>
-                      Humidity
-                    </span>
+              </tbody>
 
-                    <strong>
-                      {reading.humidity}%
-                    </strong>
-                  </div>
-
-
-                  <div>
-                    <span>
-                      Battery
-                    </span>
-
-                    <strong>
-                      {reading.battery}%
-                    </strong>
-                  </div>
-
-                </div>
-
-              </article>
-
-            ))}
+            </table>
 
           </div>
 
-        )}
+        ) : null}
 
       </section>
 
