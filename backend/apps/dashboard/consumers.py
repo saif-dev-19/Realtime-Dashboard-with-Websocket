@@ -31,11 +31,25 @@ class DashboardConsumer(
         )
     
 
+    # async def send_sensor_data(
+    #     self,
+    #     event
+    # ):
+    #     print("EVENT FROM REDIS:", event)
+    #     await self.send(
+    #         text_data=json.dumps(
+    #             event["data"]
+    #         )
+    #     )
+
     async def send_sensor_data(
-        self,
-        event
+    self,
+    event
     ):
-        print("EVENT FROM REDIS:", event)
+        print("================ REDIS EVENT ================")
+        print(event)
+        print("==============================================")
+
         await self.send(
             text_data=json.dumps(
                 event["data"]

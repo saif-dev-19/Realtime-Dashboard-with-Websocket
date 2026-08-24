@@ -7,8 +7,7 @@ from asgiref.sync import async_to_sync
 from apps.dashboard.models import SensorReading
 
 
-
-@receiver(post_save,sender=SensorReading)
+@receiver(post_save, sender=SensorReading)
 def sensor_created(
     sender,
     instance,
@@ -16,12 +15,13 @@ def sensor_created(
     **kwargs
 ):
     print("SIGNAL RUNNING")
+
     if created:
 
         channel_layer = get_channel_layer()
 
-
         data = {
+            "device_id": instance.device.id,
 
             "device": instance.device.name,
 
@@ -30,11 +30,11 @@ def sensor_created(
             "humidity": instance.humidity,
 
             "battery": instance.battery,
-
         }
 
-
-        async_to_sync(channel_layer.group_send)(
+        async_to_sync(
+            channel_layer.group_send
+        )(
             "dashboard",
 
             {

@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { connectDashboardWebSocket } from "../services/websocket";
 
+interface LiveDeviceData {
+  device_id: number;
+  device: string;
+  temperature: number;
+  humidity: number;
+  battery: number;
+}
 import {
   LineChart,
   Line,
@@ -20,6 +28,8 @@ function DeviceDetails() {
   const [readings, setReadings] = useState<SensorReading[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [liveReading, setLiveReading] =
+  useState<LiveDeviceData | null>(null);
 
   useEffect(() => {
     async function fetchReadings() {
@@ -51,6 +61,27 @@ function DeviceDetails() {
     fetchReadings();
   }, [id]);
 
+useEffect(() => {
+  const socket = connectDashboardWebSocket(
+    (data) => {
+      const sensor = data as LiveDeviceData;
+
+      console.log(
+        "DEVICE DETAILS LIVE DATA:",
+        sensor
+      );
+
+      if (String(sensor.device_id) === id) {
+        setLiveReading(sensor);
+      }
+    }
+  );
+
+  return () => {
+    socket.close();
+  };
+}, [id]);
+
   if (loading) {
     return (
       <main className="dashboard">
@@ -67,20 +98,47 @@ function DeviceDetails() {
     );
   }
 
-  const chartData = readings.map(
+    const historicalChartData = readings.map(
     (reading) => ({
-      time: new Date(
+        time: new Date(
         reading.created_at
-      ).toLocaleTimeString(),
+        ).toLocaleTimeString(),
 
-      temperature: reading.temperature,
-      humidity: reading.humidity,
-      battery: reading.battery,
+        temperature: reading.temperature,
+        humidity: reading.humidity,
+        battery: reading.battery,
     })
-  );
+    );
+
+    const chartData = liveReading
+    ? [
+        ...historicalChartData,
+        {
+            time: new Date().toLocaleTimeString(),
+
+            temperature: liveReading.temperature,
+
+            humidity: liveReading.humidity,
+
+            battery: liveReading.battery,
+        },
+        ]
+    : historicalChartData;
 
   const latest =
-    readings[readings.length - 1];
+  readings[readings.length - 1];
+
+    const currentTemperature =
+    liveReading?.temperature ??
+    latest?.temperature;
+
+    const currentHumidity =
+    liveReading?.humidity ??
+    latest?.humidity;
+
+    const currentBattery =
+    liveReading?.battery ??
+    latest?.battery;
 
   return (
     <main className="dashboard">
@@ -114,49 +172,88 @@ function DeviceDetails() {
           Current Reading
       ========================== */}
 
-      {latest && (
-        <section className="current-reading">
+      {(liveReading || latest) && (
+  <section className="current-reading">
 
-          <div className="current-reading-card">
+    <div className="current-reading-header">
 
-            <span>
-              Temperature
-            </span>
+      <div>
+        <span className="current-label">
+          Current Reading
+        </span>
 
-            <strong>
-              {latest.temperature}°C
-            </strong>
+        <h2>
+          Device {id}
+        </h2>
+      </div>
 
-          </div>
+      <span
+        className={`reading-live-status ${
+          liveReading
+            ? "live"
+            : "last"
+        }`}
+      >
+        <span className="status-indicator"></span>
+
+        {liveReading
+          ? "Live"
+          : "Last reading"}
+      </span>
+
+    </div>
 
 
-          <div className="current-reading-card">
+    <div className="current-reading-values">
 
-            <span>
-              Humidity
-            </span>
+      <div className="current-reading-card">
 
-            <strong>
-              {latest.humidity}%
-            </strong>
+        <span>
+          Temperature
+        </span>
 
-          </div>
+        <strong>
+          {currentTemperature !== undefined
+            ? `${currentTemperature}°C`
+            : "--"}
+        </strong>
+
+      </div>
 
 
-          <div className="current-reading-card">
+      <div className="current-reading-card">
 
-            <span>
-              Battery
-            </span>
+        <span>
+          Humidity
+        </span>
 
-            <strong>
-              {latest.battery}%
-            </strong>
+        <strong>
+          {currentHumidity !== undefined
+            ? `${currentHumidity}%`
+            : "--"}
+        </strong>
 
-          </div>
+      </div>
 
-        </section>
-      )}
+
+      <div className="current-reading-card">
+
+        <span>
+          Battery
+        </span>
+
+        <strong>
+          {currentBattery !== undefined
+            ? `${currentBattery}%`
+            : "--"}
+        </strong>
+
+      </div>
+
+    </div>
+
+  </section>
+)}
 
 
       {/* =========================
