@@ -123,3 +123,17 @@ So if the WebSocket temporarily disconnects, the UI continues showing the last a
                          │ Sensor   │  │  Layer   │
                          │ Readings │  │          │
                          └──────────┘  └──────────┘
+
+
+# Quick Start
+
+Follow the steps below to run the project locally.
+
+---
+
+## 1. Clone the Repository
+
+First, clone the GitHub repository:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
